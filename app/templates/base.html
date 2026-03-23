@@ -17,7 +17,7 @@
         {% if current_user.is_authenticated %}
         <div class="navbar-nav me-auto">
           <a class="nav-link" href="{{ url_for('rooms.list_rooms') }}">会议室列表</a>
-          <a class="nav-link" href="{{ url_for('reservations.create_reservation') }}">新建预定</a>
+          <a class="nav-link" href="{{ url_for('reservations.create_reservation') }}">会议室预定</a>
           <a class="nav-link" href="{{ url_for('reservations.my_reservations') }}">我的预定</a>
           <a class="nav-link" href="{{ url_for('auth.change_password') }}">修改密码</a>
           {% if current_user.is_admin %}

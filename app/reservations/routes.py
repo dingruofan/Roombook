@@ -27,6 +27,17 @@ def create_reservation():
         start_time = form.start_time.data
         end_time = form.end_time.data
 
+        # 校验时间顺序
+        if not (start_time and end_time and start_time < end_time):
+            flash("开始时间必须早于结束时间。", "danger")
+            return render_template("reservations/form.html", form=form, mode="create")
+
+        # 校验单次会议时长不超过6小时
+        duration_hours = (end_time - start_time).total_seconds() / 3600
+        if duration_hours > 6:
+            flash("单次会议时间不得超过6小时！", "danger")
+            return render_template("reservations/form.html", form=form, mode="create")
+
         reservation = Reservation(
             room_id=form.room_id.data,
             user_id=current_user.id,
@@ -48,11 +59,6 @@ def create_reservation():
                 for c in conflicts[:3]
             )
             flash(f"该时间段已被预定：{conflict_text}", "danger")
-            return render_template("reservations/form.html", form=form, mode="create")
-
-
-        if not reservation.validate_time_range():
-            flash("开始时间必须早于结束时间。", "danger")
             return render_template("reservations/form.html", form=form, mode="create")
 
         if Reservation.has_conflict(
@@ -108,6 +114,12 @@ def edit_reservation(reservation_id: int):
             flash("开始时间必须早于结束时间。", "danger")
             return render_template("reservations/form.html", form=form, mode="edit")
 
+
+        # 校验单次会议时长不超过6小时
+        duration_hours = (end_time - start_time).total_seconds() / 3600
+        if duration_hours > 6:
+            flash("单次会议时间不得超过6小时！", "danger")
+            return render_template("reservations/form.html", form=form, mode="edit")
 
         conflicts = Reservation.find_conflicts(
             room_id=form.room_id.data,

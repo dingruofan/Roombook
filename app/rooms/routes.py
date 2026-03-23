@@ -20,14 +20,29 @@ def _all_reserved(room_id: int):
         .all()
     )
 
-    return [
-        {
-            "time": f"{r.start_time:%Y-%m-%d %H:%M} ~ {r.end_time:%Y-%m-%d %H:%M}",
+    result = []
+    for r in reservations:
+        # 计算会议时长（小时）
+        duration_hours = (r.end_time - r.start_time).total_seconds() / 3600
+        
+        # 格式化为小数或整数
+        if duration_hours.is_integer():
+            duration_str = f"{int(duration_hours)}小时"
+        else:
+            duration_str = f"{duration_hours:.1f}小时"
+        
+        # 生成完整显示字符串：日期：时间段（时长）| 预定者
+        display_str = f"{r.start_time:%Y-%m-%d}：{r.start_time:%H:%M}~{r.end_time:%H:%M} ({duration_str}) | {r.user.full_name or r.user.username}"
+        
+        result.append({
+            "time": f"{r.start_time:%Y-%m-%d}：{r.start_time:%H:%M} ~ {r.end_time:%H:%M}",
             "user": r.user.full_name or r.user.username,
-            "title": r.title
-        }
-        for r in reservations
-    ]
+            "title": r.title,
+            "duration": duration_str,
+            "display": display_str
+        })
+    
+    return result
 
 @rooms_bp.route("/rooms")
 @login_required

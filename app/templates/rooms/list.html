@@ -29,7 +29,9 @@
         <th>设备</th>
         <th>状态</th>
         <th>已预定</th>
+        {% if current_user.is_admin %}
         <th>操作</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -50,7 +52,7 @@
             <div class="d-flex flex-column gap-2">
               {% for r in reservations %}
               <div class="border-start border-3 border-primary ps-2">
-                <div class="small text-muted">{{ r.time }} | {{ r.user }}</div>
+                <div class="small text-muted">{{ r.display }}</div>
               </div>
               {% endfor %}
             </div>
@@ -62,11 +64,11 @@
         <td>
           <a class="btn btn-outline-primary btn-sm" href="{{ url_for('rooms.edit_room', room_id=room.id) }}">修改会议室</a>
         </td>
-{% endif %}
+        {% endif %}
       </tr>
       {% else %}
       <tr>
-        <td colspan="7" class="text-center text-muted">暂无会议室</td>
+        <td colspan="{% if current_user.is_admin %}7{% else %}6{% endif %}" class="text-center text-muted">暂无会议室</td>
       </tr>
       {% endfor %}
     </tbody>
