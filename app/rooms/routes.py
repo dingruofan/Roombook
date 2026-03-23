@@ -7,13 +7,17 @@ from app.rooms import rooms_bp
 from app.rooms.forms import RoomForm
 from flask import request
 from app.models.reservation import Reservation
+from datetime import datetime
+import re
 
 
 def _all_reserved(room_id: int):
+    now = datetime.now()
     reservations = (
         Reservation.query.filter(
             Reservation.room_id == room_id,
             Reservation.status == "active",
+            Reservation.end_time > now,
         )
         .join(Reservation.user)
         .order_by(Reservation.start_time.asc())
@@ -22,33 +26,27 @@ def _all_reserved(room_id: int):
 
     result = []
     for r in reservations:
-        # 计算会议时长（小时）
         duration_hours = (r.end_time - r.start_time).total_seconds() / 3600
-        
-        # 格式化为小数或整数
-        if duration_hours.is_integer():
-            duration_str = f"{int(duration_hours)}小时"
-        else:
-            duration_str = f"{duration_hours:.1f}小时"
-        
-        # 生成完整显示字符串：日期：时间段（时长）| 预定者
+        duration_str = f"{int(duration_hours)}小时" if duration_hours.is_integer() else f"{duration_hours:.1f}小时"
         display_str = f"{r.start_time:%Y-%m-%d}：{r.start_time:%H:%M}~{r.end_time:%H:%M} ({duration_str}) | {r.user.full_name or r.user.username}"
-        
-        result.append({
-            "time": f"{r.start_time:%Y-%m-%d}：{r.start_time:%H:%M} ~ {r.end_time:%H:%M}",
-            "user": r.user.full_name or r.user.username,
-            "title": r.title,
-            "duration": duration_str,
-            "display": display_str
-        })
-    
+        result.append(
+            {
+                "display": display_str,
+                "title": r.title,
+            }
+        )
     return result
+
+def _extract_room_number(name: str) -> int:
+    # 提取名称中的第一段数字；没有数字时放到最后
+    m = re.search(r"\d+", name or "")
+    return int(m.group()) if m else 10**9
 
 @rooms_bp.route("/rooms")
 @login_required
 def list_rooms():
     active = request.args.get("active", "1")
-    query = Room.query.order_by(Room.id.desc())
+    query = Room.query
 
     if active == "1":
         query = query.filter_by(is_active=True)
@@ -57,9 +55,23 @@ def list_rooms():
 
     rooms = query.all()
     reserved_map = {room.id: _all_reserved(room.id) for room in rooms}
+
+    # 排序规则：
+    # 1) 预订数量降序
+    # 2) 名称中数字升序（如 A1, A2, A10）
+    # 3) 名称字典序兜底
+    rooms_sorted = sorted(
+        rooms,
+        key=lambda room: (
+            -len(reserved_map.get(room.id, [])),
+            _extract_room_number(room.name),
+            room.name or "",
+        ),
+    )
+
     return render_template(
         "rooms/list.html",
-        rooms=rooms,
+        rooms=rooms_sorted,
         active_filter=active,
         reserved_map=reserved_map,
     )

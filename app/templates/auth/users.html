@@ -34,7 +34,11 @@
         <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
         <td class="text-end">
           <a class="btn btn-outline-primary btn-sm" href="{{ url_for('auth.edit_user', user_id=u.id) }}">编辑</a>
-          <a class="btn btn-outline-warning btn-sm" href="{{ url_for('auth.reset_user_password', user_id=u.id) }}">重置密码</a>
+          <a class="btn btn-outline-warning btn-sm"
+            href="{{ url_for('auth.reset_user_password', user_id=u.id) }}"
+            onclick="return confirm('确定要为该用户重置密码吗？');">
+            重置密码
+          </a>
         </td>
       </tr>
       {% else %}

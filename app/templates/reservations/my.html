@@ -27,11 +27,19 @@
         <td>{{ r.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
         <td>{{ r.status }}</td>
         <td class="text-end">
-          {% if r.status == 'active' %}
-          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('reservations.edit_reservation', reservation_id=r.id) }}">修改</a>
-          <form method="post" action="{{ url_for('reservations.cancel_reservation', reservation_id=r.id) }}" class="d-inline">
-            <button type="submit" class="btn btn-outline-danger btn-sm">取消会议</button>
-          </form>
+          {% if r.status != 'active' %}
+            <span class="badge text-bg-secondary">已取消</span>
+          {% elif r.end_time <= now %}
+            <span class="badge text-bg-secondary">已过期</span>
+          {% else %}
+            <a class="btn btn-outline-primary btn-sm"
+              href="{{ url_for('reservations.edit_reservation', reservation_id=r.id) }}">修改</a>
+            <form method="post"
+                  action="{{ url_for('reservations.cancel_reservation', reservation_id=r.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('确定取消这条预定吗？该操作不可撤销。');">
+              <button type="submit" class="btn btn-outline-danger btn-sm">取消</button>
+            </form>
           {% endif %}
         </td>
       </tr>
