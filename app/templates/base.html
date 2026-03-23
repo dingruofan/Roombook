@@ -20,16 +20,18 @@
           <a class="nav-link" href="{{ url_for('reservations.create_reservation') }}">会议室预定</a>
           <a class="nav-link" href="{{ url_for('reservations.my_reservations') }}">我的预定</a>
           <a class="nav-link" href="{{ url_for('auth.change_password') }}">修改密码</a>
-          {% if current_user.is_admin %}
-          <a class="nav-link" href="{{ url_for('rooms.create_room') }}">新建会议室</a>
-          <a class="nav-link" href="{{ url_for('auth.create_user') }}">添加用户</a>
-          {% endif %}
         </div>
         {% endif %}
 
         <div class="d-flex align-items-center">
           {% if current_user.is_authenticated %}
             <span class="text-light me-3">你好，{{ current_user.username }}</span>
+            {% if current_user.is_admin %}
+              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('rooms.create_room') }}">新建会议室</a>
+              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('auth.create_user') }}">添加用户</a>
+              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('auth.list_users') }}">用户管理</a>
+               '|' 
+            {% endif %}
             <form method="post" action="{{ url_for('auth.logout') }}">
               <button class="btn btn-outline-light btn-sm" type="submit">退出</button>
             </form>
