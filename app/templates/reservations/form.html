@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ '新建预定' if mode == 'create' else '修改预定' }}{% endblock %}
+{% block title %}{{ '会议室预定' if mode == 'create' else '修改预定' }}{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">{{ '新建预定' if mode == 'create' else '修改预定' }}</h1>
+<h1 class="h4 mb-3">{{ '会议室预定' if mode == 'create' else '修改预定' }}</h1>
 
 <form method="post" class="card card-body">
   {{ form.csrf_token }}
