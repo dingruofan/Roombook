@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 会议室预定系统{% endblock %}
+
+{% block content %}
+<div class="p-4 bg-light border rounded-3">
+  <h1 class="h4 mb-3">欢迎使用会议室预定系统</h1>
+
+  {% if current_user.is_authenticated %}
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{{ url_for('rooms.list_rooms') }}">查看会议室</a>
+    <a class="btn btn-success" href="{{ url_for('reservations.create_reservation') }}">新建预定</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('reservations.my_reservations') }}">我的预定</a>
+    {% if current_user.is_admin %}
+    <a class="btn btn-warning" href="{{ url_for('rooms.create_room') }}">管理员：新建会议室</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="mb-0">请先登录后使用预定功能。</p>
+  {% endif %}
+</div>
+{% endblock %}

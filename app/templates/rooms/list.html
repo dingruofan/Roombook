@@ -1,0 +1,75 @@
+<!-- app/templates/rooms/list.html -->
+{% extends "base.html" %}
+{% block title %}会议室列表{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">会议室列表</h1>
+  {% if current_user.is_admin %}
+  <a class="btn btn-primary btn-sm" href="{{ url_for('rooms.create_room') }}">新建会议室</a>
+  {% endif %}
+</div>
+
+<div class="table-responsive">
+
+  <form class="d-flex gap-2 mb-3" method="get">
+    <select name="active" class="form-select form-select-sm" style="max-width: 220px;">
+      <option value="1" {% if active_filter == "1" %}selected{% endif %}>仅显示启用</option>
+      <option value="0" {% if active_filter == "0" %}selected{% endif %}>仅显示停用</option>
+      <option value="all" {% if active_filter == "all" %}selected{% endif %}>显示全部</option>
+    </select>
+    <button class="btn btn-outline-secondary btn-sm" type="submit">筛选</button>
+  </form>
+
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>名称</th>
+        <th>位置</th>
+        <th>容量</th>
+        <th>设备</th>
+        <th>状态</th>
+        <th>已预定</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for room in rooms %}
+      <tr>
+        <td><strong>{{ room.name }}</strong></td>
+        <td>{{ room.location or '-' }}</td>
+        <td>{{ room.capacity }}人</td>
+        <td>{{ room.equipment or '-' }}</td>
+        <td>
+          <span class="badge {% if room.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+            {{ '启用' if room.is_active else '停用' }}
+          </span>
+        </td>
+        <td>
+          {% set reservations = reserved_map.get(room.id, []) %}
+          {% if reservations %}
+            <div class="d-flex flex-column gap-2">
+              {% for r in reservations %}
+              <div class="border-start border-3 border-primary ps-2">
+                <div class="small text-muted">{{ r.time }} | {{ r.user }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <span class="text-muted">空闲</span>
+          {% endif %}
+        </td>
+        {% if current_user.is_admin %}
+        <td>
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('rooms.edit_room', room_id=room.id) }}">修改会议室</a>
+        </td>
+{% endif %}
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="text-center text-muted">暂无会议室</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ '新建预定' if mode == 'create' else '修改预定' }}{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">{{ '新建预定' if mode == 'create' else '修改预定' }}</h1>
+
+<form method="post" class="card card-body">
+  {{ form.csrf_token }}
+
+  <div class="mb-3">
+    {{ form.room_id.label(class="form-label") }}
+    {{ form.room_id(class="form-select") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.title.label(class="form-label") }}
+    {{ form.title(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.description.label(class="form-label") }}
+    {{ form.description(class="form-control", rows="3") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.start_time.label(class="form-label") }}
+    {{ form.start_time(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.end_time.label(class="form-label") }}
+    {{ form.end_time(class="form-control") }}
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}
