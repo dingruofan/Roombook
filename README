@@ -1,0 +1,45 @@
+# 会议室预定系统，基本安装测试流程：
+
+# 安装mysql和python:
+sudo apt update
+sudo apt install -y git curl build-essential
+sudo apt install -y python3 python3-venv python3-pip
+sudo apt install -y mysql-server mysql-client
+sudo systemctl enable mysql
+sudo systemctl start mysql
+sudo systemctl status mysql
+sudo mysql_secure_installation
+
+# 直接root登录mysql:
+sudo mysql -u root -p
+
+# 创建用户：
+CREATE USER "dingruofan"@"localhost" IDENTIFIED BY "mysql_passwd!"; # local login
+CREATE USER "dingruofan"@"%" IDENTIFIED BY "mysql_passwd!"; #remote login
+CREATE USER "meeting_user"@"localhost" IDENTIFIED BY "mysql_passwd"; # local login
+CREATE USER "meeting_user"@"%" IDENTIFIED BY "mysql_passwd!"; #remote login
+# 创建数据库：
+CREATE DATABASE meeting_room CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON meeting_room.* TO 'meeting_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+# 创建项目：
+mkdir -p /home/dingruofan/Project/Roombook
+cd /home/dingruofan/Project/Roombook
+#创建运行环境：
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install flask flask-sqlalchemy flask-migrate flask-login flask-wtf python-dotenv email-validator pymysql cryptography
+
+# 写完model后，初始化数据库
+export FLASK_APP=run
+flask db init
+flask db migrate -m "init tables"
+flask db upgrade
+
+# 部署网站，如果是80端口，得用sudo运行。
+flask --app app run --host=0.0.0.0 --port=8080
+ 
+http://82.156.238.175:8080/
+
