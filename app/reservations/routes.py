@@ -7,6 +7,7 @@ from app.models.room import Room
 from app.reservations import reservations_bp
 from app.reservations.forms import ReservationForm
 from flask import request
+from datetime import datetime
 
 def _room_choices():
     rooms = Room.query.filter_by(is_active=True).order_by(Room.name.asc()).all()
@@ -26,6 +27,10 @@ def create_reservation():
     if form.validate_on_submit():
         start_time = form.start_time.data
         end_time = form.end_time.data
+        now = datetime.now()
+        if start_time <= now or end_time <= now:
+            flash("预定时间必须是未来时间。", "danger")
+            return render_template("reservations/form.html", form=form, mode="create")
 
         # 校验时间顺序
         if not (start_time and end_time and start_time < end_time):
@@ -93,6 +98,7 @@ def my_reservations():
         "reservations/my.html",
         reservations=pagination.items,
         pagination=pagination,
+        now=datetime.now(),
     )
 
 
@@ -103,12 +109,20 @@ def edit_reservation(reservation_id: int):
     if reservation.user_id != current_user.id:
         abort(403)
 
+    if reservation.end_time <= datetime.now():
+        flash("该预定已过期，无法修改。", "warning")
+        return redirect(url_for("reservations.my_reservations"))
+
     form = ReservationForm(obj=reservation)
     form.room_id.choices = _room_choices()
 
     if form.validate_on_submit():
         start_time = form.start_time.data
         end_time = form.end_time.data
+        now = datetime.now()
+        if start_time <= now or end_time <= now:
+            flash("预定时间必须是未来时间。", "danger")
+            return render_template("reservations/form.html", form=form, mode="edit")
 
         if not (start_time and end_time and start_time < end_time):
             flash("开始时间必须早于结束时间。", "danger")
@@ -163,6 +177,10 @@ def cancel_reservation(reservation_id: int):
     reservation = Reservation.query.get_or_404(reservation_id)
     if reservation.user_id != current_user.id:
         abort(403)
+
+    if reservation.end_time <= datetime.now():
+            flash("该预定已过期，无法取消。", "warning")
+            return redirect(url_for("reservations.my_reservations"))
 
     reservation.status = "cancelled"
     db.session.commit()
