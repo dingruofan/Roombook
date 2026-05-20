@@ -1,13 +1,15 @@
-from flask import abort, flash, redirect, render_template, url_for
+from datetime import datetime
+
+from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.models.reservation import Reservation
 from app.models.room import Room
+from app.models.user import User
 from app.reservations import reservations_bp
 from app.reservations.forms import ReservationForm
-from flask import request
-from datetime import datetime
 
 def _room_choices():
     rooms = Room.query.filter_by(is_active=True).order_by(Room.name.asc()).all()
@@ -186,3 +188,62 @@ def cancel_reservation(reservation_id: int):
     db.session.commit()
     flash("预定已取消。", "success")
     return redirect(url_for("reservations.my_reservations"))
+
+
+@reservations_bp.route("/reservations/history")
+@login_required
+def history_reservations():
+    if not current_user.is_admin:
+        abort(403)
+
+    page = request.args.get("page", 1, type=int)
+    room_id = request.args.get("room_id", type=int)
+    user_id = request.args.get("user_id", type=int)
+    expired = request.args.get("expired", "all")
+    now = datetime.now()
+
+    query = Reservation.query.options(
+        joinedload(Reservation.room),
+        joinedload(Reservation.user),
+    )
+
+    if room_id:
+        query = query.filter(Reservation.room_id == room_id)
+
+    if user_id:
+        query = query.filter(Reservation.user_id == user_id)
+
+    if expired == "1":
+        query = query.filter(Reservation.end_time < now)
+    elif expired == "0":
+        query = query.filter(Reservation.end_time >= now)
+
+    pagination = query.order_by(Reservation.start_time.desc()).paginate(
+        page=page, per_page=30, error_out=False
+    )
+
+    rooms = Room.query.order_by(Room.name.asc()).all()
+    users = User.query.order_by(User.username.asc()).all()
+
+    def page_url(target_page: int):
+        params = {"page": target_page}
+        if room_id:
+            params["room_id"] = room_id
+        if user_id:
+            params["user_id"] = user_id
+        if expired in {"0", "1"}:
+            params["expired"] = expired
+        return url_for("reservations.history_reservations", **params)
+
+    return render_template(
+        "reservations/history.html",
+        reservations=pagination.items,
+        pagination=pagination,
+        rooms=rooms,
+        users=users,
+        room_id=room_id,
+        user_id=user_id,
+        expired=expired,
+        now=now,
+        page_url=page_url,
+    )

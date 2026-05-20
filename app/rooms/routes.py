@@ -1,5 +1,6 @@
 from flask import abort, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from app.extensions import db
 from app.models.room import Room
@@ -25,10 +26,12 @@ def _all_reserved(room_id: int):
     )
 
     result = []
+    weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     for r in reservations:
         duration_hours = (r.end_time - r.start_time).total_seconds() / 3600
         duration_str = f"{int(duration_hours)}小时" if duration_hours.is_integer() else f"{duration_hours:.1f}小时"
-        display_str = f"{r.start_time:%Y-%m-%d}：{r.start_time:%H:%M}~{r.end_time:%H:%M} ({duration_str}) | {r.user.full_name or r.user.username}"
+        weekday = weekdays[r.start_time.weekday()]
+        display_str = f"{r.start_time:%Y-%m-%d}( {weekday})：{r.start_time:%H:%M}~{r.end_time:%H:%M} ({duration_str}) | {r.user.full_name or r.user.username}"
         result.append(
             {
                 "display": display_str,
@@ -46,12 +49,24 @@ def _extract_room_number(name: str) -> int:
 @login_required
 def list_rooms():
     active = request.args.get("active", "1")
+    q = request.args.get("q", "").strip()
     query = Room.query
 
     if active == "1":
         query = query.filter_by(is_active=True)
     elif active == "0":
         query = query.filter_by(is_active=False)
+
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(
+                Room.name.ilike(like),
+                Room.location.ilike(like),
+                Room.equipment.ilike(like),
+                Room.description.ilike(like),
+            )
+        )
 
     rooms = query.all()
     reserved_map = {room.id: _all_reserved(room.id) for room in rooms}
@@ -73,6 +88,7 @@ def list_rooms():
         "rooms/list.html",
         rooms=rooms_sorted,
         active_filter=active,
+        q=q,
         reserved_map=reserved_map,
     )
 

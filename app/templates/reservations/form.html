@@ -21,16 +21,55 @@
     {{ form.description(class="form-control", rows="3") }}
   </div>
 
-  <div class="mb-3">
-    {{ form.start_time.label(class="form-label") }}
-    {{ form.start_time(class="form-control") }}
-  </div>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="mb-1">
+        {{ form.start_time.label(class="form-label") }}
+      </div>
+      {{ form.start_time(class="form-control js-datetime-local", type="datetime-local", step="60") }}
+      <div class="form-text">请选择未来时间，精确到分钟。</div>
+    </div>
 
-  <div class="mb-3">
-    {{ form.end_time.label(class="form-label") }}
-    {{ form.end_time(class="form-control") }}
+    <div class="col-12 col-md-6">
+      <div class="mb-1">
+        {{ form.end_time.label(class="form-label") }}
+      </div>
+      {{ form.end_time(class="form-control js-datetime-local", type="datetime-local", step="60") }}
+      <div class="form-text">请选择结束时间，必须晚于开始时间。</div>
+    </div>
   </div>
 
   {{ form.submit(class="btn btn-primary") }}
 </form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.js-datetime-local').forEach((input) => {
+      let pointerActivated = false;
+
+      const openPicker = () => {
+        if (typeof input.showPicker === 'function') {
+          try {
+            input.showPicker();
+          } catch (err) {
+            // 某些浏览器在特定场景下会拒绝重复打开，忽略即可。
+          }
+        }
+      };
+
+      input.addEventListener('pointerdown', () => {
+        pointerActivated = true;
+      });
+
+      input.addEventListener('focus', () => {
+        if (pointerActivated) {
+          openPicker();
+        }
+        pointerActivated = false;
+      });
+
+      input.addEventListener('click', openPicker);
+    });
+  });
+</script>
 {% endblock %}

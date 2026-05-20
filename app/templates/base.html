@@ -14,30 +14,45 @@
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">会议室预定系统</a>
 
-        {% if current_user.is_authenticated %}
-        <div class="navbar-nav me-auto">
-          <a class="nav-link" href="{{ url_for('rooms.list_rooms') }}">会议室列表</a>
-          <a class="nav-link" href="{{ url_for('reservations.create_reservation') }}">会议室预定</a>
-          <a class="nav-link" href="{{ url_for('reservations.my_reservations') }}">我的预定</a>
-          <a class="nav-link" href="{{ url_for('auth.change_password') }}">修改密码</a>
-        </div>
-        {% endif %}
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+          aria-controls="navbarContent"
+          aria-expanded="false"
+          aria-label="切换导航"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <div class="d-flex align-items-center">
+        <div class="collapse navbar-collapse" id="navbarContent">
           {% if current_user.is_authenticated %}
-            <span class="text-light me-3">你好，{{ current_user.username }}</span>
-            {% if current_user.is_admin %}
-              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('rooms.create_room') }}">新建会议室</a>
-              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('auth.create_user') }}">添加用户</a>
-              <a class="btn btn-outline-light btn-sm"  href="{{ url_for('auth.list_users') }}">用户管理</a>
-               '|' 
-            {% endif %}
-            <form method="post" action="{{ url_for('auth.logout') }}">
-              <button class="btn btn-outline-light btn-sm" type="submit">退出</button>
-            </form>
-          {% else %}
-            <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login') }}">登录</a>
+          <div class="navbar-nav me-auto mb-2 mb-lg-0">
+            <a class="nav-link" href="{{ url_for('rooms.list_rooms') }}">会议室列表</a>
+            <a class="nav-link" href="{{ url_for('reservations.create_reservation') }}">会议室预定</a>
+            <a class="nav-link" href="{{ url_for('reservations.my_reservations') }}">我的预定</a>
+            <a class="nav-link" href="{{ url_for('auth.change_password') }}">修改密码</a>
+          </div>
           {% endif %}
+
+          <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
+            {% if current_user.is_authenticated %}
+              <span class="text-light me-lg-3">你好，{{ current_user.username }}</span>
+              {% if current_user.is_admin %}
+                <div class="d-flex flex-column flex-lg-row gap-2 me-lg-3">
+                  <a class="btn btn-outline-light btn-sm" href="{{ url_for('rooms.create_room') }}">新建会议室</a>
+                  <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.list_users') }}">用户管理</a>
+                  <a class="btn btn-outline-light btn-sm" href="{{ url_for('reservations.history_reservations') }}">历史预定</a>
+                </div>
+              {% endif %}
+              <form method="post" action="{{ url_for('auth.logout') }}" class="d-grid d-lg-block">
+                <button class="btn btn-outline-light btn-sm" type="submit">退出</button>
+              </form>
+            {% else %}
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login') }}">登录</a>
+            {% endif %}
+          </div>
         </div>
       </div>
     </nav>
